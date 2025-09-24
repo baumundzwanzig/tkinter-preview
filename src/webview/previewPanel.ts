@@ -186,6 +186,7 @@ export class TkinterPreviewPanel {
                     display: flex;
                     align-items: center;
                     gap: 10px;
+                    color: black;
                 }
                 
                 .toolbar button {
@@ -244,6 +245,7 @@ export class TkinterPreviewPanel {
                     margin-top: 10px;
                     border-radius: 4px;
                     font-size: 12px;
+                    color: black;
                 }
                 
                 .debug-panel h3, .debug-panel h4 {

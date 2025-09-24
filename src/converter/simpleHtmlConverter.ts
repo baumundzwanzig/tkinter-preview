@@ -107,7 +107,14 @@ export class TkinterHtmlConverter {
         const title = widget.properties.title || 'Tk';
         
         let html = `<div id="${id}" class="tk-window">`;
-        html += `<div class="tk-titlebar">${this.escapeHtml(title)}</div>`;
+        html += '<div class="tk-titlebar">';
+        html += `<div class="tk-titlebar-title">${this.escapeHtml(title)}</div>`;
+        html += '<div class="tk-titlebar-buttons">';
+        html += '<div class="tk-titlebar-button">−</div>'; // Minimieren
+        html += '<div class="tk-titlebar-button">□</div>'; // Maximieren
+        html += '<div class="tk-titlebar-button">×</div>'; // Schließen
+        html += '</div>';
+        html += '</div>';
         html += '<div class="tk-content">';
         
         // Pack children vertically
@@ -218,9 +225,11 @@ export class TkinterHtmlConverter {
      */
     private generateSimpleCSS(): string {
         return `
-/* Reset */
+/* Reset - Entferne alle Browser-Defaults */
 * {
     box-sizing: border-box;
+    margin: 0;
+    padding: 0;
 }
 
 /* Tkinter Window */
@@ -231,7 +240,7 @@ export class TkinterHtmlConverter {
     font-size: 9pt;
     margin: 10px auto;
     display: inline-block;
-    /* Entferne min-width und lasse das Fenster sich an den Inhalt anpassen */
+    min-width: 150px; /* Mindestbreite für Systemschaltflächen */
 }
 
 .tk-titlebar {
@@ -241,39 +250,82 @@ export class TkinterHtmlConverter {
     font-weight: bold;
     font-size: 8pt;
     color: #000;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    min-height: 20px; /* Mindesthöhe für Titelleiste */
 }
 
-/* Window content - minimales Padding wie in echtem Tkinter */
+.tk-titlebar-title {
+    flex-grow: 1;
+    text-align: left;
+}
+
+.tk-titlebar-buttons {
+    display: flex;
+    gap: 2px;
+    margin-left: 8px;
+}
+
+.tk-titlebar-button {
+    width: 16px;
+    height: 14px;
+    border: 1px outset #ddd;
+    background: linear-gradient(to bottom, #f8f8f8, #d8d8d8);
+    font-size: 6pt;
+    line-height: 12px;
+    text-align: center;
+    cursor: pointer;
+    color: #000;
+}
+
+.tk-titlebar-button:hover {
+    background: linear-gradient(to bottom, #f0f0f0, #d0d0d0);
+}
+
+.tk-titlebar-button:active {
+    border-style: inset;
+}
+
+/* Window content - kein Padding für authentisches Verhalten */
 .tk-content {
-    padding: 4px; /* Sehr wenig Padding */
-    text-align: center; /* Center align children horizontally */
+    padding: 0; /* Komplett kein Padding */
+    margin: 0; /* Kein Margin */
+    text-align: center; /* Zentrieren */
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Elemente zentrieren */
+    gap: 0; /* Kein Gap zwischen Elementen */
 }
 
-/* Tkinter Label - kein Padding/Margin */
+/* Tkinter Label - komplett ohne Abstände */
 .tk-label {
-    display: block; /* Block display for vertical stacking */
-    margin: 0; /* Kein Margin */
-    padding: 0; /* Kein Padding */
+    display: block;
+    margin: 0; /* Komplett kein Margin */
+    padding: 0; /* Komplett kein Padding */
+    border: 0; /* Kein Border */
     color: #000;
     background: transparent;
     font-size: 9pt;
-    width: fit-content; /* Only as wide as needed */
-    margin-left: auto;
-    margin-right: auto;
+    width: auto;
+    line-height: 1;
+    box-sizing: content-box; /* Keine zusätzlichen Box-Berechnungen */
 }
 
-/* Tkinter Button - minimales Padding wie in echtem Tkinter */
+/* Tkinter Button - komplett minimales Padding */
 .tk-button {
-    display: block; /* Block display for vertical stacking */
-    margin: 0 auto; /* Nur horizontale Zentrierung */
-    padding: 1px 6px; /* Sehr wenig Padding wie in echtem Tkinter */
-    border: 2px outset #ddd;
+    display: block;
+    margin: 0; /* Komplett kein Margin */
+    padding: 4px; /* Nur minimalstes horizontales Padding für Lesbarkeit */
+    border: 1px outset #ddd;
     background: linear-gradient(to bottom, #f8f8f8, #e0e0e0);
     color: #000;
     font-family: inherit;
     font-size: 9pt;
     cursor: pointer;
-    width: fit-content; /* Only as wide as needed */
+    width: auto;
+    line-height: 1.2;
+    box-sizing: content-box; /* Keine zusätzlichen Box-Berechnungen */
 }
 
 .tk-button:hover {
