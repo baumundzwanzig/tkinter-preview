@@ -3,6 +3,7 @@
   "displayName": "Tkinter Preview",
   "description": "Live preview of Tkinter GUI applications without running Python code.",
   "version": "0.0.1",
+  "icon": "media/tkinter_preview.png",
   "engines": {
     "vscode": "^1.104.0"
   },
