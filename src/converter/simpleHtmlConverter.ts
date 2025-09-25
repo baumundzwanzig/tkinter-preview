@@ -118,11 +118,15 @@ export class TkinterHtmlConverter {
         
         // Erkenne ob Children grid() Layout verwenden
         const hasGridChildren = widget.children.some(child => child.layoutManager === 'grid');
-        const contentClass = hasGridChildren ? 'tk-content-grid' : 'tk-content';
-        
-        html += `<div class="${contentClass}">`;
         
         if (hasGridChildren) {
+            // Berechne Grid-Dimensionen dynamisch
+            const gridInfo = this.calculateGridDimensions(widget.children);
+            const contentClass = 'tk-content-grid';
+            const gridStyles = `grid-template-columns: repeat(${gridInfo.columns}, auto); grid-template-rows: repeat(${gridInfo.rows}, auto);`;
+            
+            html += `<div class="${contentClass}" style="${gridStyles}">`;
+            
             // Grid Layout: Sortiere Kinder nach row/column für korrekten Grid-Aufbau
             const gridChildren = [...widget.children].sort((a, b) => {
                 const rowA = (a.layoutOptions?.row || 0) as number;
@@ -130,7 +134,9 @@ export class TkinterHtmlConverter {
                 const colA = (a.layoutOptions?.column || 0) as number;
                 const colB = (b.layoutOptions?.column || 0) as number;
                 
-                if (rowA !== rowB) return rowA - rowB;
+                if (rowA !== rowB) {
+                    return rowA - rowB;
+                }
                 return colA - colB;
             });
             
@@ -138,6 +144,9 @@ export class TkinterHtmlConverter {
                 html += this.generateSimpleWidget(child);
             }
         } else {
+            const contentClass = 'tk-content';
+            html += `<div class="${contentClass}">`;
+            
             // Pack Layout: Normale vertikale Anordnung
             for (const child of widget.children) {
                 html += this.generateSimpleWidget(child);
@@ -185,10 +194,14 @@ export class TkinterHtmlConverter {
             // CSS Grid Area: grid-area: row-start / column-start / row-end / column-end
             const rowStart = row + 1; // CSS Grid ist 1-basiert
             const colStart = column + 1;
-            const rowEnd = rowStart + rowspan;
+            const rowEnd = rowStart + rowspan; // span bedeutet zusätzliche Zeilen/Spalten
             const colEnd = colStart + columnspan;
             
             styles.push(`grid-area: ${rowStart} / ${colStart} / ${rowEnd} / ${colEnd}`);
+            
+            // Debug-Output
+            console.log(`Grid Widget: row=${row}, col=${column}, rowspan=${rowspan}, colspan=${columnspan}`);
+            console.log(`CSS Grid Area: ${rowStart} / ${colStart} / ${rowEnd} / ${colEnd}`);
             
             // Grid sticky-Optionen zu CSS justify-self/align-self
             if (options.sticky) {
@@ -328,6 +341,39 @@ export class TkinterHtmlConverter {
     }
 
     /**
+     * Calculate grid dimensions based on widget positions and spans
+     */
+    private calculateGridDimensions(widgets: TkinterWidget[]): { rows: number, columns: number } {
+        let maxRow = 0;
+        let maxColumn = 0;
+        
+        for (const widget of widgets) {
+            if (widget.layoutManager === 'grid' && widget.layoutOptions) {
+                const row = parseInt(String(widget.layoutOptions.row || 0));
+                const column = parseInt(String(widget.layoutOptions.column || 0));
+                const rowspan = parseInt(String(widget.layoutOptions.rowspan || 1));
+                const columnspan = parseInt(String(widget.layoutOptions.columnspan || 1));
+                
+                // Berechne die tatsächlich belegte Fläche
+                const endRow = row + rowspan - 1;
+                const endColumn = column + columnspan - 1;
+                
+                if (endRow > maxRow) {
+                    maxRow = endRow;
+                }
+                if (endColumn > maxColumn) {
+                    maxColumn = endColumn;
+                }
+            }
+        }
+        
+        return {
+            rows: maxRow + 1,     // +1 weil 0-basiert
+            columns: maxColumn + 1
+        };
+    }
+
+    /**
      * Generate simple CSS that mimics Tkinter behavior
      */
     private generateSimpleCSS(): string {
@@ -410,14 +456,13 @@ export class TkinterHtmlConverter {
     padding: 0;
     margin: 0;
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(auto, 1fr));
-    grid-template-rows: repeat(auto-fit, minmax(auto, 1fr));
+    /* Grid-Template wird dynamisch gesetzt */
     gap: 0;
-    justify-items: start; /* Widgets links ausrichten */
+    justify-items: stretch; /* Widgets füllen ihre Zelle */
     align-items: start; /* Widgets oben ausrichten */
 }
 
-/* Tkinter Label - komplett ohne Abstände */
+/* Tkinter Label */
 .tk-label {
     display: block;
     margin: 0; /* Komplett kein Margin */
@@ -431,7 +476,7 @@ export class TkinterHtmlConverter {
     box-sizing: content-box; /* Keine zusätzlichen Box-Berechnungen */
 }
 
-/* Tkinter Button - komplett minimales Padding */
+/* Tkinter Button */
 .tk-button {
     display: block;
     margin: 0; /* Komplett kein Margin */
