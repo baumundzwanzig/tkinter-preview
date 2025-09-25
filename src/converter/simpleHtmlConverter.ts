@@ -115,11 +115,33 @@ export class TkinterHtmlConverter {
         html += '<div class="tk-titlebar-button">×</div>'; // Schließen
         html += '</div>';
         html += '</div>';
-        html += '<div class="tk-content">';
         
-        // Pack children vertically
-        for (const child of widget.children) {
-            html += this.generateSimpleWidget(child);
+        // Erkenne ob Children grid() Layout verwenden
+        const hasGridChildren = widget.children.some(child => child.layoutManager === 'grid');
+        const contentClass = hasGridChildren ? 'tk-content-grid' : 'tk-content';
+        
+        html += `<div class="${contentClass}">`;
+        
+        if (hasGridChildren) {
+            // Grid Layout: Sortiere Kinder nach row/column für korrekten Grid-Aufbau
+            const gridChildren = [...widget.children].sort((a, b) => {
+                const rowA = (a.layoutOptions?.row || 0) as number;
+                const rowB = (b.layoutOptions?.row || 0) as number;
+                const colA = (a.layoutOptions?.column || 0) as number;
+                const colB = (b.layoutOptions?.column || 0) as number;
+                
+                if (rowA !== rowB) return rowA - rowB;
+                return colA - colB;
+            });
+            
+            for (const child of gridChildren) {
+                html += this.generateSimpleWidget(child);
+            }
+        } else {
+            // Pack Layout: Normale vertikale Anordnung
+            for (const child of widget.children) {
+                html += this.generateSimpleWidget(child);
+            }
         }
         
         html += '</div></div>';
@@ -150,8 +172,59 @@ export class TkinterHtmlConverter {
     private getWidgetStyles(widget: TkinterWidget): string {
         const styles: string[] = [];
         
+        // Grid-Layout-Optionen berücksichtigen
+        if (widget.layoutManager === 'grid' && widget.layoutOptions) {
+            const options = widget.layoutOptions;
+            
+            // Grid-Positionierung
+            const row = parseInt(String(options.row || 0));
+            const column = parseInt(String(options.column || 0));
+            const rowspan = parseInt(String(options.rowspan || 1));
+            const columnspan = parseInt(String(options.columnspan || 1));
+            
+            // CSS Grid Area: grid-area: row-start / column-start / row-end / column-end
+            const rowStart = row + 1; // CSS Grid ist 1-basiert
+            const colStart = column + 1;
+            const rowEnd = rowStart + rowspan;
+            const colEnd = colStart + columnspan;
+            
+            styles.push(`grid-area: ${rowStart} / ${colStart} / ${rowEnd} / ${colEnd}`);
+            
+            // Grid sticky-Optionen zu CSS justify-self/align-self
+            if (options.sticky) {
+                const sticky = String(options.sticky).toLowerCase();
+                const alignmentStyles = this.convertStickyToCSS(sticky);
+                styles.push(...alignmentStyles);
+            }
+            
+            // Grid padx und pady
+            if (options.padx !== undefined) {
+                const padx = parseInt(String(options.padx)) || 0;
+                styles.push(`margin-left: ${padx}px`);
+                styles.push(`margin-right: ${padx}px`);
+            }
+            
+            if (options.pady !== undefined) {
+                const pady = parseInt(String(options.pady)) || 0;
+                styles.push(`margin-top: ${pady}px`);
+                styles.push(`margin-bottom: ${pady}px`);
+            }
+            
+            // Grid ipadx und ipady
+            if (options.ipadx !== undefined) {
+                const ipadx = parseInt(String(options.ipadx)) || 0;
+                styles.push(`padding-left: ${ipadx}px`);
+                styles.push(`padding-right: ${ipadx}px`);
+            }
+            
+            if (options.ipady !== undefined) {
+                const ipady = parseInt(String(options.ipady)) || 0;
+                styles.push(`padding-top: ${ipady}px`);
+                styles.push(`padding-bottom: ${ipady}px`);
+            }
+        }
         // Pack-Layout-Optionen berücksichtigen
-        if (widget.layoutManager === 'pack' && widget.layoutOptions) {
+        else if (widget.layoutManager === 'pack' && widget.layoutOptions) {
             const options = widget.layoutOptions;
             
             // padx und pady umwandeln
@@ -218,6 +291,40 @@ export class TkinterHtmlConverter {
             .replace(/>/g, '&gt;')
             .replace(/"/g, '&quot;')
             .replace(/'/g, '&#39;');
+    }
+
+    /**
+     * Convert Tkinter sticky values to CSS alignment
+     */
+    private convertStickyToCSS(sticky: string): string[] {
+        const styles: string[] = [];
+        
+        // Tkinter sticky: 'n', 's', 'e', 'w' und Kombinationen
+        // CSS Grid: justify-self (horizontal), align-self (vertical)
+        
+        let justifySelf = 'start'; // Default: links
+        let alignSelf = 'start';   // Default: oben
+        
+        if (sticky.includes('w') && sticky.includes('e')) {
+            justifySelf = 'stretch'; // Dehne horizontal
+        } else if (sticky.includes('e')) {
+            justifySelf = 'end';     // Rechts ausrichten
+        } else if (sticky.includes('w')) {
+            justifySelf = 'start';   // Links ausrichten
+        }
+        
+        if (sticky.includes('n') && sticky.includes('s')) {
+            alignSelf = 'stretch';   // Dehne vertikal
+        } else if (sticky.includes('s')) {
+            alignSelf = 'end';       // Unten ausrichten
+        } else if (sticky.includes('n')) {
+            alignSelf = 'start';     // Oben ausrichten
+        }
+        
+        styles.push(`justify-self: ${justifySelf}`);
+        styles.push(`align-self: ${alignSelf}`);
+        
+        return styles;
     }
 
     /**
@@ -296,6 +403,18 @@ export class TkinterHtmlConverter {
     flex-direction: column;
     align-items: center; /* Elemente zentrieren */
     gap: 0; /* Kein Gap zwischen Elementen */
+}
+
+/* Window content für Grid Layout */
+.tk-content-grid {
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(auto, 1fr));
+    grid-template-rows: repeat(auto-fit, minmax(auto, 1fr));
+    gap: 0;
+    justify-items: start; /* Widgets links ausrichten */
+    align-items: start; /* Widgets oben ausrichten */
 }
 
 /* Tkinter Label - komplett ohne Abstände */
