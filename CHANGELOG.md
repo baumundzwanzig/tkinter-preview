@@ -1,9 +1,9 @@
 # Change Log
 
-All notable changes to the "tkinter-preview" extension will be documented in this file.
+The extension is in a very early state and under development.
 
-Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
+## 0.0.1 - Initial release
 
-## [Unreleased]
-
-- Initial release
+- added support for grid and pack
+- added support for Entry, Label and Button
+- added Debug window
