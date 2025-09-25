@@ -4,7 +4,7 @@ Shows a preview of your Tkinter application in a WebView in realtime. Currently 
 
 ## Features
 
-+ 🖼️ | shows preview for basic tkinter elements (button, label, input)
++ 🖼️ | shows preview for basic tkinter elements (button, label)
 + 🪟 | supports pack() and grid()
 + 🩹 | also supports the sticky attribute
 
@@ -23,4 +23,4 @@ Please check the respository on GitHub and feel free to contribute to the projec
 
 + implemented basic functionality
 + support for grid and pack
-+ support for input, button and label
++ support for button and label
