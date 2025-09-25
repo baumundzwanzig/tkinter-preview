@@ -22,9 +22,11 @@ entry2.grid(row=1, column=1)
 label3 = tk.Label(root, text="Password:")
 label3.grid(row=2, column=0)
 
+
 entry3 = tk.Entry(root, show="*")
 entry3.grid(row=2, column=1)
 
+banane 
 # Button
 button = tk.Button(root, text="Submit")
 button.grid(row=3, column=0, columnspan=2, pady=10)
