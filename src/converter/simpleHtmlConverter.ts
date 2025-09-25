@@ -101,6 +101,9 @@ export class TkinterHtmlConverter {
             case 'button':
                 return this.generateButton(widget, widgetId);
             
+            case 'entry':
+                return this.generateEntry(widget, widgetId);
+            
             default:
                 // Ignoriere andere Widgets für jetzt
                 return '';
@@ -182,6 +185,23 @@ export class TkinterHtmlConverter {
         const text = widget.properties.text || 'Button';
         const styles = this.getWidgetStyles(widget);
         return `<button id="${id}" class="tk-button" style="${styles}">${this.escapeHtml(text)}</button>`;
+    }
+
+    /**
+     * Generate entry HTML
+     */
+    private generateEntry(widget: TkinterWidget, id: string): string {
+        // Entry-spezifische Properties
+        const placeholder = widget.properties.textvariable || '';
+        const value = widget.properties.get || ''; // Für initial value
+        const show = widget.properties.show; // Für Passwort-Felder
+        
+        const styles = this.getWidgetStyles(widget);
+        
+        // Unterscheide zwischen normalen Entry und Passwort Entry
+        const inputType = show === '*' ? 'password' : 'text';
+        
+        return `<input id="${id}" type="${inputType}" class="tk-entry" style="${styles}" value="${this.escapeHtml(String(value))}" placeholder="${this.escapeHtml(String(placeholder))}">`;
     }
 
     /**
@@ -509,6 +529,27 @@ export class TkinterHtmlConverter {
 
 .tk-button:active {
     border-style: inset;
+}
+
+/* Tkinter Entry */
+.tk-entry {
+    display: block;
+    margin: 0;
+    padding: 2px 4px;
+    border: 2px inset #ddd; /* Inset border wie echte Tkinter Entry */
+    background: white;
+    color: #000;
+    font-family: inherit;
+    font-size: 9pt;
+    width: auto;
+    line-height: 1.2;
+    box-sizing: content-box;
+}
+
+.tk-entry:focus {
+    outline: none;
+    background: #ffffff;
+    border-color: #999;
 }
 
 /* Error and empty states */
