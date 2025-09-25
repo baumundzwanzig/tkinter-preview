@@ -311,6 +311,11 @@ export class TkinterHtmlConverter {
             if (width > 0) {
                 // Bei Tkinter ist width oft in Zeichen, wir konvertieren zu Pixeln
                 styles.push(`width: ${width * 8}px`);
+                
+                // Für Entry-Widgets: Überschreibe Grid stretch-Verhalten, aber zentriere
+                if (widget.type.toLowerCase() === 'entry') {
+                    styles.push('justify-self: center'); // Zentrieren in der Zelle
+                }
             }
         }
         
@@ -488,7 +493,7 @@ export class TkinterHtmlConverter {
     display: grid;
     /* Grid-Template wird dynamisch gesetzt */
     gap: 0;
-    justify-items: stretch; /* Widgets füllen ihre Zelle */
+    justify-items: center; /* Widgets in ihrer natürlichen Größe zentrieren */
     align-items: start; /* Widgets oben ausrichten */
 }
 
@@ -541,9 +546,10 @@ export class TkinterHtmlConverter {
     color: #000;
     font-family: inherit;
     font-size: 9pt;
-    width: auto;
+    width: 160px; /* Default-Breite für Entry ohne width-Attribut */
     line-height: 1.2;
     box-sizing: content-box;
+    justify-self: center; /* Zentrieren in Grid-Zelle wie in echtem Tkinter */
 }
 
 .tk-entry:focus {
