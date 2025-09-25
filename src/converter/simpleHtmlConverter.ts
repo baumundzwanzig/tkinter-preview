@@ -41,6 +41,13 @@ export class TkinterHtmlConverter {
             const html = this.generateSimpleHtml(behaviorResult.modifiedWidgets);
             const css = this.generateSimpleCSS();
 
+            // Debug-Output: Erzeugten HTML und CSS Code ausgeben
+            console.log('=== GENERATED HTML ===');
+            console.log(html);
+            console.log('=== GENERATED CSS ===');
+            console.log(css);
+            console.log('=== END DEBUG ===');
+
             return {
                 html,
                 css,
@@ -123,8 +130,10 @@ export class TkinterHtmlConverter {
             // Berechne Grid-Dimensionen dynamisch
             const gridInfo = this.calculateGridDimensions(widget.children);
             const contentClass = 'tk-content-grid';
+            // CSS Grid braucht eine Linie mehr als die Anzahl der Zellen
             const gridStyles = `grid-template-columns: repeat(${gridInfo.columns}, auto); grid-template-rows: repeat(${gridInfo.rows}, auto);`;
             
+            console.log(`Grid dimensions: ${gridInfo.rows} rows, ${gridInfo.columns} columns`);
             html += `<div class="${contentClass}" style="${gridStyles}">`;
             
             // Grid Layout: Sortiere Kinder nach row/column für korrekten Grid-Aufbau
@@ -192,10 +201,11 @@ export class TkinterHtmlConverter {
             const columnspan = parseInt(String(options.columnspan || 1));
             
             // CSS Grid Area: grid-area: row-start / column-start / row-end / column-end
+            // Wichtig: CSS Grid End-Werte sind exklusiv (Linie nach dem letzten Element)
             const rowStart = row + 1; // CSS Grid ist 1-basiert
             const colStart = column + 1;
-            const rowEnd = rowStart + rowspan; // span bedeutet zusätzliche Zeilen/Spalten
-            const colEnd = colStart + columnspan;
+            const rowEnd = row + rowspan + 1; // +1 weil End-Linie exklusiv ist
+            const colEnd = column + columnspan + 1; // +1 weil End-Linie exklusiv ist
             
             styles.push(`grid-area: ${rowStart} / ${colStart} / ${rowEnd} / ${colEnd}`);
             
@@ -469,6 +479,7 @@ export class TkinterHtmlConverter {
     padding: 0; /* Komplett kein Padding */
     border: 0; /* Kein Border */
     color: #000;
+    text-align: center; /* Zentrieren */
     background: transparent;
     font-size: 9pt;
     width: auto;
