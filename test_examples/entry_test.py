@@ -18,6 +18,7 @@ label2.grid(row=1, column=0)
 entry2 = tk.Entry(root, width=30)
 entry2.grid(row=1, column=1)
 
+
 # Password Entry
 label3 = tk.Label(root, text="Password:")
 label3.grid(row=2, column=0)
